@@ -1,0 +1,177 @@
+:root {
+    --bg-fallback: #f8fafc; 
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --text-dark: #0f172a;
+    --text-light: #475569;
+    --white: #ffffff;
+}
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Inter', sans-serif; 
+}
+
+/* ========== BACKGROUND SETUP ========== */
+.landing-body { 
+    background: var(--bg-fallback); 
+    min-height: 100vh; 
+    position: relative; 
+    overflow-x: hidden; 
+    display: flex; 
+    flex-direction: column; 
+}
+
+/* The Background Image */
+.bg-image {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh;
+    object-fit: cover; /* Ensures image covers screen without stretching */
+    z-index: -2;
+}
+
+/* Gradient overlay to make the text readable over the image */
+.landing-body::before {
+    content: ''; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh;
+    /* White at the top fading to transparent in the middle */
+    background: linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 40%, rgba(255,255,255,0) 100%);
+    z-index: -1;
+}
+
+.landing-content { 
+    position: relative; 
+    z-index: 1; 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+}
+
+/* ========== NAVBAR ========== */
+.navbar { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 24px 8%; 
+}
+
+.logo { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    font-size: 24px; 
+    font-weight: 800; 
+    color: var(--text-dark);
+}
+
+.logo-icon { 
+    background: var(--primary); 
+    width: 40px; 
+    height: 40px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    border-radius: 12px; 
+    color: white; 
+    font-size: 20px; 
+}
+
+.nav-links { 
+    display: flex; 
+    gap: 16px; 
+    align-items: center; 
+}
+
+.btn-login { 
+    text-decoration: none; 
+    color: var(--text-dark); 
+    font-weight: 600; 
+    padding: 10px 20px; 
+    transition: color 0.2s;
+}
+
+.btn-login:hover {
+    color: var(--primary);
+}
+
+.btn-primary { 
+    background: var(--primary); 
+    color: white; 
+    text-decoration: none; 
+    padding: 12px 24px; 
+    border-radius: 12px; 
+    font-weight: 600; 
+    border: none; 
+    cursor: pointer; 
+    transition: all 0.3s ease; 
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); 
+}
+
+.btn-primary:hover { 
+    background: var(--primary-hover); 
+    transform: translateY(-2px); 
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+}
+
+.btn-primary.large { 
+    padding: 16px 32px; 
+    font-size: 18px; 
+    border-radius: 16px;
+}
+
+/* ========== HERO TEXT ========== */
+.hero { 
+    text-align: center; 
+    padding: 60px 20px 20px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    flex: 1; 
+}
+
+.hero-text h1 { 
+    font-size: 56px; 
+    font-weight: 800; 
+    line-height: 1.1; 
+    letter-spacing: -2px; 
+    margin-bottom: 24px; 
+    color: var(--text-dark); 
+}
+
+.hero-text p { 
+    font-size: 20px; 
+    color: var(--text-light); 
+    max-width: 600px; 
+    margin: 0 auto 40px; 
+    line-height: 1.5; 
+    font-weight: 400; 
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .hero-text h1 { 
+        font-size: 40px; 
+        letter-spacing: -1px;
+    }
+    .hero-text p {
+        font-size: 16px;
+    }
+    .navbar {
+        padding: 16px 5%;
+    }
+    .nav-links {
+        gap: 8px;
+    }
+    .btn-login {
+        padding: 10px 12px;
+    }
+}

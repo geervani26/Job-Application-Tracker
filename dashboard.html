@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard · Command Center</title>
+    
+    <script>
+        if (!localStorage.getItem('jobTrackerSession')) { window.location.href = 'auth.html'; }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    
+    <style>
+        .profile-layout { display: flex; gap: 24px; align-items: flex-start; }
+        .profile-card-new { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; width: 100%; max-width: 400px; text-align: center; }
+        .profile-banner { height: 120px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
+        .profile-avatar-large { width: 100px; height: 100px; background: var(--bg-panel); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 700; color: white; margin: -50px auto 16px; border: 4px solid var(--bg-panel); box-shadow: 0 4px 10px rgba(0,0,0,0.2); background: #4f46e5; }
+        .profile-card-new h2 { font-size: 22px; margin-bottom: 4px; color: var(--text-main); }
+        .profile-card-new .role { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+        .profile-details-list { text-align: left; padding: 0 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+        .detail-item { display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+        .detail-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .detail-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .detail-value { font-size: 15px; font-weight: 500; color: var(--text-main); }
+        .edit-profile-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; flex: 1; }
+        .edit-profile-card h3 { margin-bottom: 20px; font-size: 18px; color: var(--text-main); }
+        .edit-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    </style>
+</head>
+<body>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo-area">
+            <div class="logo-icon">🚀</div>
+            <span class="logo-text">Tracker</span>
+        </div>
+        <nav class="nav-menu">
+            <button class="nav-item active" data-target="view-dashboard"><span class="icon">📊</span> Analysis</button>
+            <button class="nav-item" data-target="view-board"><span class="icon">🗂️</span> Dashboard</button>
+            <button class="nav-item" data-target="view-applications"><span class="icon">📝</span> Applications</button>
+            <button class="nav-item" data-target="view-profile"><span class="icon">⚙️</span> Profile</button>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-mini-profile">
+                <div class="avatar" id="avatarInitials">A</div>
+                <div class="user-info">
+                    <span id="profileName">User</span>
+                    <span id="profileRole">Job Seeker</span>
+                </div>
+                <button onclick="logout()" style="margin-left: auto; background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 14px;">Logout</button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div>
+                <h1 class="page-title" id="pageTitle">Overview</h1>
+                <p class="page-subtitle">Here is your job search command center.</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-primary" onclick="document.querySelector('[data-target=\'view-applications\']').click()">+ New Application</button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view-section active-view">
+            <div class="kpi-grid">
+                <div class="kpi-card total"><div class="kpi-header"><span class="label">Total Applications</span><span class="icon">📋</span></div><span class="value" id="totalApplications">0</span></div>
+                <div class="kpi-card interviews"><div class="kpi-header"><span class="label">Interviews</span><span class="icon">🎤</span></div><span class="value" id="totalInterviews">0</span></div>
+                <div class="kpi-card offers"><div class="kpi-header"><span class="label">Offers</span><span class="icon">🎉</span></div><span class="value" id="totalOffers">0</span></div>
+                <div class="kpi-card rejected"><div class="kpi-header"><span class="label">Rejected</span><span class="icon">📉</span></div><span class="value" id="totalRejected">0</span></div>
+            </div>
+            <div class="middle-grid">
+                <div class="card">
+                    <div class="card-header"><h3>Conversion Funnel</h3><span class="badge">Real-time</span></div>
+                    <div class="chart-container"><canvas id="funnelChart"></canvas></div>
+                </div>
+                <div class="card insight-card">
+                    <div class="card-header"><h3>💡 Smart Insights</h3></div>
+                    <div class="insight-list">
+                        <div class="insight-item"><span class="insight-icon">⚡</span><div class="insight-text"><strong>Interview Rate</strong><p id="insightInterviewRate">0% of applications lead to interviews.</p></div></div>
+                        <div class="insight-item"><span class="insight-icon">⏱️</span><div class="insight-text"><strong>Pending Actions</strong><p id="insightPending">0 applications are waiting for a response.</p></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KANBAN VIEW -->
+        <section id="view-board" class="view-section">
+            <div class="kanban-board">
+                <div class="kanban-column" data-status="Applied"><div class="kanban-header"><h3>Applied</h3><span class="count" id="count-Applied">0</span></div><div class="kanban-cards" id="col-Applied"></div></div>
+                <div class="kanban-column" data-status="Interview"><div class="kanban-header"><h3>Interviewing</h3><span class="count" id="count-Interview">0</span></div><div class="kanban-cards" id="col-Interview"></div></div>
+                <div class="kanban-column" data-status="Offer Received"><div class="kanban-header"><h3>Offers</h3><span class="count" id="count-Offer">0</span></div><div class="kanban-cards" id="col-Offer"></div></div>
+                <div class="kanban-column" data-status="Rejected"><div class="kanban-header"><h3>Archived</h3><span class="count" id="count-Rejected">0</span></div><div class="kanban-cards" id="col-Rejected"></div></div>
+            </div>
+        </section>
+
+        <!-- DATABASE VIEW -->
+        <section id="view-applications" class="view-section">
+            <div class="form-card glass-panel" id="formCard">
+                <div class="form-title" id="formTitle">Add New Application</div>
+                <form id="applicationForm">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Company *</label><input type="text" id="company" required placeholder="e.g. Google"></div>
+                        <div class="form-group"><label>Job Role *</label><input type="text" id="jobRole" required placeholder="e.g. Frontend Engineer"></div>
+                        <div class="form-group"><label>Status *</label>
+                            <select id="status" required>
+                                <option value="Applied">Applied</option>
+                                <option value="Interview">Interview</option>
+                                <option value="Offer Received">Offer Received</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Application Date *</label><input type="date" id="applicationDate" required></div>
+                        <div class="form-group full-width"><label>Notes</label><textarea id="notes" rows="2" placeholder="Next steps..."></textarea></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="cancelEditButton" style="display: none;">Cancel</button>
+                        <button type="submit" class="btn-primary" id="submitButton">Save Application</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card data-table-card">
+                <div class="card-header">
+                    <h3>Application Database</h3>
+                    <div class="data-actions">
+                        <button class="btn-secondary" id="exportButton">Export PDF</button>
+                        <input type="file" id="importFile" accept=".pdf" style="display: none;">
+                        <button class="btn-secondary" id="importButton">Import PDF</button>
+                    </div>
+                </div>
+                <table class="app-table">
+                    <thead><tr><th>Company</th><th>Role</th><th>Date</th><th>Status</th><th style="text-align: right;">Actions</th></tr></thead>
+                    <tbody id="fullApplicationTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PROFILE VIEW -->
+        <section id="view-profile" class="view-section">
+            <div class="profile-layout">
+                <div class="profile-card-new">
+                    <div class="profile-banner"></div>
+                    <div class="profile-avatar-large" id="profileViewAvatar">A</div>
+                    <h2 id="profileViewName">User</h2>
+                    <p class="role" id="profileViewRole">Job Seeker</p>
+                    <div class="profile-details-list">
+                        <div class="detail-item"><span class="detail-label">Email Address</span><span class="detail-value" id="profileViewEmail">Not set</span></div>
+                        <div class="detail-item"><span class="detail-label">Mobile Number</span><span class="detail-value" id="profileViewPhone">Not set</span></div>
+                        <div class="detail-item"><span class="detail-label">Location</span><span class="detail-value" id="profileViewLocation">Not set</span></div>
+                    </div>
+                </div>
+
+                <div class="edit-profile-card">
+                    <h3>Edit Personal Details</h3>
+                    <form id="profileEditForm">
+                        <div class="edit-form-grid">
+                            <div class="form-group"><label>Full Name</label><input type="text" id="editName" required></div>
+                            <div class="form-group"><label>Professional Role</label><input type="text" id="editRole" placeholder="e.g. Frontend Developer" required></div>
+                            <div class="form-group"><label>Email Address</label><input type="email" id="editEmail" required></div>
+                            <div class="form-group"><label>Mobile Number</label><input type="tel" id="editPhone" placeholder="+1 (555) 000-0000"></div>
+                            <div class="form-group full-width"><label>Location</label><input type="text" id="editLocation" placeholder="City, Country"></div>
+                        </div>
+                        <div class="form-actions"><button type="submit" class="btn-primary">Save Changes</button></div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    function logout() {
+        localStorage.removeItem('jobTrackerSession');
+        window.location.href = 'index.html';
+    }
+</script>
+<script src="script.js"></script>
+</body>
+</html>
